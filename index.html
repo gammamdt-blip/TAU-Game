@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0c0f">
+  <title>TAU &mdash; THE CITY IS WATCHING.</title>
+  <meta name="description" content="TAU: an offline endless rooftop runner through a fogbound, watched city. Open this file in a browser and play.">
+  <link rel="icon" type="image/png" href="assets/images/icon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main id="stage">
+    <div id="viewport">
+      <canvas id="game" tabindex="0" aria-label="TAU game screen"></canvas>
+
+      <div id="ui">
+        <!-- ============ in-game HUD ============ -->
+        <div id="hud" hidden>
+          <div class="hud-left">
+            <button id="btn-pause" class="icon-btn" type="button" aria-label="Pause (P)" tabindex="-1"><img data-asset="ui_pause" alt=""></button>
+            <button id="btn-mute" class="icon-btn" type="button" aria-label="Mute (M)" tabindex="-1"><img id="img-mute" data-asset="ui_sound_on" alt=""></button>
+            <button id="btn-full" class="icon-btn" type="button" aria-label="Fullscreen (F)" tabindex="-1"><img data-asset="ui_fullscreen" alt=""></button>
+          </div>
+          <div class="hud-right">
+            <div id="distance"><span id="distance-value">0</span><span class="unit">m</span></div>
+            <div class="status"><i class="rec"></i><span>TRACKED</span></div>
+            <div class="speed" aria-hidden="true"><i id="speed-fill"></i></div>
+          </div>
+          <div id="fps" hidden></div>
+          <div id="hint">HOLD TO JUMP HIGHER</div>
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        </div>
+
+        <!-- ============ main menu ============ -->
+        <section id="screen-menu" class="screen" hidden aria-labelledby="menu-title">
+          <div class="block menu-block">
+            <h1 id="menu-title" class="logo">TAU</h1>
+            <p id="menu-tagline" class="tagline">THE CITY IS WATCHING.</p>
+            <nav class="list" aria-label="Main menu">
+              <button id="btn-start" class="btn primary nav" type="button">START RUN</button>
+              <button id="btn-settings" class="btn nav" type="button">SETTINGS</button>
+              <button id="btn-credits" class="btn nav" type="button">CREDITS</button>
+            </nav>
+          </div>
+          <p id="menu-best" class="corner-note best"></p>
+          <p class="foot hints" id="menu-hints">X / SPACE / CLICK / TAP &mdash; JUMP &nbsp;&middot;&nbsp; P &mdash; PAUSE &nbsp;&middot;&nbsp; M &mdash; MUTE &nbsp;&middot;&nbsp; F &mdash; FULLSCREEN</p>
+        </section>
+
+        <!-- ============ pause ============ -->
+        <section id="screen-pause" class="screen" hidden aria-labelledby="pause-title">
+          <div class="block">
+            <p class="logo small">TAU</p>
+            <h2 id="pause-title" class="title">PAUSED</h2>
+            <nav class="list" aria-label="Pause menu">
+              <button id="btn-resume" class="btn primary nav" type="button">RESUME</button>
+              <button id="btn-pause-settings" class="btn nav" type="button">SETTINGS</button>
+              <button id="btn-quit" class="btn nav" type="button">QUIT TO MENU</button>
+            </nav>
+          </div>
+        </section>
+
+        <!-- ============ game over ============ -->
+        <section id="screen-over" class="screen" hidden aria-labelledby="over-title">
+          <div class="block over-block">
+            <p class="logo small">TAU</p>
+            <h2 id="over-title" class="title">RUN TERMINATED</h2>
+            <p id="over-distance" class="distance-line">DISTANCE: 00000m</p>
+            <p id="over-cause" class="note"></p>
+            <p id="over-best" class="note best"></p>
+            <nav class="list" aria-label="Game over menu">
+              <button id="btn-retry" class="btn primary nav" type="button">TRY AGAIN</button>
+              <button id="btn-over-menu" class="btn nav" type="button">MAIN MENU</button>
+            </nav>
+          </div>
+        </section>
+
+        <!-- ============ settings ============ -->
+        <section id="screen-settings" class="screen modal" hidden aria-labelledby="settings-title">
+          <div class="panel">
+            <h2 id="settings-title" class="title small">SETTINGS</h2>
+            <div class="tabs" role="tablist">
+              <button class="tab" type="button" role="tab" data-tab="graphics" aria-selected="true">GRAPHICS</button>
+              <button class="tab" type="button" role="tab" data-tab="audio" aria-selected="false">AUDIO</button>
+              <button class="tab" type="button" role="tab" data-tab="gameplay" aria-selected="false">GAMEPLAY</button>
+            </div>
+
+            <div class="tab-panel" data-panel="graphics" role="tabpanel">
+              <label class="row"><span>QUALITY</span>
+                <select data-setting="graphics.quality"><option value="low">LOW</option><option value="medium">MEDIUM</option><option value="high">HIGH</option></select></label>
+              <label class="row"><span>RENDER RESOLUTION</span>
+                <select data-setting="graphics.resolution" data-type="number"><option value="0.5">50%</option><option value="0.75">75%</option><option value="1">100%</option></select></label>
+              <label class="row"><span>ADAPTIVE RESOLUTION</span><input type="checkbox" data-setting="graphics.adaptive"></label>
+              <label class="row"><span>RAIN</span><input type="checkbox" data-setting="graphics.rain"></label>
+              <label class="row"><span>FOG</span><input type="checkbox" data-setting="graphics.fog"></label>
+              <label class="row"><span>WET REFLECTIONS</span><input type="checkbox" data-setting="graphics.reflections"></label>
+              <label class="row"><span>FILM GRAIN</span><input type="checkbox" data-setting="graphics.grain"></label>
+              <label class="row"><span>VIGNETTE</span><input type="checkbox" data-setting="graphics.vignette"></label>
+              <label class="row"><span>SHOW FPS</span><input type="checkbox" data-setting="graphics.fps"></label>
+            </div>
+
+            <div class="tab-panel" data-panel="audio" role="tabpanel" hidden>
+              <label class="row"><span>MASTER</span><input type="range" min="0" max="100" step="5" data-setting="audio.master" data-scale="100"><output></output></label>
+              <label class="row"><span>MUSIC</span><input type="range" min="0" max="100" step="5" data-setting="audio.music" data-scale="100"><output></output></label>
+              <label class="row"><span>EFFECTS</span><input type="range" min="0" max="100" step="5" data-setting="audio.effects" data-scale="100"><output></output></label>
+              <label class="row"><span>AMBIENCE</span><input type="range" min="0" max="100" step="5" data-setting="audio.ambience" data-scale="100"><output></output></label>
+              <label class="row"><span>MUTE ALL</span><input type="checkbox" data-setting="audio.muted"></label>
+            </div>
+
+            <div class="tab-panel" data-panel="gameplay" role="tabpanel" hidden>
+              <label class="row"><span>SCREEN SHAKE</span><input type="range" min="0" max="100" step="10" data-setting="gameplay.shake" data-scale="100"><output></output></label>
+              <label class="row"><span>REDUCE FLASHING</span><input type="checkbox" data-setting="gameplay.reduceFlashing"></label>
+              <label class="row"><span>PAUSE WHEN WINDOW LOSES FOCUS</span><input type="checkbox" data-setting="gameplay.pauseOnBlur"></label>
+              <label class="row"><span>SHOW DISTANCE COUNTER</span><input type="checkbox" data-setting="gameplay.showDistance"></label>
+              <label class="row"><span>SHOW CONTROL HINTS</span><input type="checkbox" data-setting="gameplay.showHints"></label>
+            </div>
+
+            <div class="panel-foot">
+              <button id="btn-settings-reset" class="btn small nav" type="button">RESET TO DEFAULTS</button>
+              <button id="btn-settings-close" class="btn small primary nav" type="button">BACK</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ credits ============ -->
+        <section id="screen-credits" class="screen modal" hidden aria-labelledby="credits-title">
+          <div class="panel credits">
+            <h2 id="credits-title" class="title small">CREDITS</h2>
+            <div class="credit-text">
+              <p><b>TAU</b> &mdash; THE CITY IS WATCHING. An offline, single-button endless runner in plain JavaScript and Canvas.</p>
+              <p><b>Gameplay rules</b> follow the open-source canabalt-hf port of <i>Canabalt</i> (MIT licence, &copy; 2024 Finji, LLC).
+                <i>Canabalt</i>&reg; and Finji&reg; are trademarks of Finji, LLC. TAU is an unofficial homage and is not affiliated with or endorsed by Finji, LLC.</p>
+              <p><b>Art and sound</b> are original and generated by <code>tools/generate-assets.py</code> (CC0).</p>
+              <p><b>Typeface</b> Inter, &copy; The Inter Project Authors, SIL Open Font License 1.1.</p>
+              <p class="dim">Version <span id="credits-version">1.0.0</span> &middot; Full notices: LICENSE.md</p>
+            </div>
+            <div class="panel-foot">
+              <button id="btn-credits-close" class="btn small primary nav" type="button">BACK</button>
+            </div>
+          </div>
+        </section>
+
+        <div id="loading" role="status">LOADING&hellip;</div>
+      </div>
+    </div>
+    <noscript><div id="noscript">TAU needs JavaScript. Please enable it and reload.</div></noscript>
+  </main>
+
+  <!-- Everything is local: no CDNs, no web fonts, no network requests.
+       Classic scripts (not ES modules) so this file also works when opened straight from disk. -->
+  <script src="config.js"></script>
+  <script src="assets.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
